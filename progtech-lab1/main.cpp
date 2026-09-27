@@ -6,6 +6,22 @@
 
 #define DEBUG
 
+bool readInt(std::istream& input, int& value) {
+	// Функция, которая считывает значение value типа int из input
+	// Аргументы:
+	// std::istream& input: поток, откуда будет читаться число
+	// int& value: ссылка на переменную, куда будет писаться число
+	input >> value;
+
+	if (input.fail()) {
+		input.clear();
+		input.ignore(128, '\n');
+		return false;
+	}
+
+	return true;
+};
+
 class CCSMatrix {
 	std::vector<int> values;
 	std::vector<int> rowIndexes;
@@ -60,8 +76,13 @@ public:
 		// Аргументы:
 		// std::istream& input: поток, откуда будет читаться матрица
 
-		input >> rows;
-		input >> cols;
+		if (!readInt(input, rows) || !readInt(input, cols)) {
+			throw std::runtime_error("Matrix dimensions must be integers.");
+		}
+
+		if (rows <= 0 || cols <= 0) {
+			throw std::runtime_error("Matrix dimensions must be positive.");
+		}
 
 		colPointers.resize(cols + 1, 0);
 
@@ -73,7 +94,11 @@ public:
 			for (int col = 0; col < cols; col++) {
 				int value;
 
-				input >> value;
+				if (!readInt(input, value)) {
+					throw std::runtime_error(
+						"Matrix contains invalid data. Expected an integer."
+					);
+				}
 
 				if (value != 0) {
 					tempValues[col].push_back(value);
@@ -170,27 +195,39 @@ int main() {
 		int switchValue;
 		std::cin >> switchValue;
 		CCSMatrix* ccsMatrix = nullptr;
-		switch (switchValue) {
-			case 1: 
-			{
-				std::cout << "Enter the matrix: ";
-				ccsMatrix = new CCSMatrix(std::cin);
-				break;
-			}
-			case 2: {
-				std::string filename;
-				std::cout << "Enter the filename: ";
-				std::cin >> filename;
-				std::ifstream file(filename);
-				ccsMatrix = new CCSMatrix(file);
-				file.close();
-				break;
-			}
-			default: {
-				return 0;
+		try {
+			switch (switchValue) {
+				case 1: 
+				{
+					std::cout << "Enter the matrix: ";
+					ccsMatrix = new CCSMatrix(std::cin);
+					break;
+				}
+				case 2: {
+					std::string filename;
+					std::cout << "Enter the filename: ";
+					std::cin >> filename;
+
+					std::ifstream file(filename);
+					if (!file.is_open()) {
+						throw std::runtime_error("Error: cannot open the file");
+					}
+					
+					ccsMatrix = new CCSMatrix(file);
+
+					file.close();
+					break;
+				}
+				default: {
+					return 0;
+				}
 			}
 		}
-
+		catch(const std::exception& error){
+			std::cout << error.what() << std::endl;
+			delete ccsMatrix;
+			continue;
+		}
 
 		std::cout << "\nUnpacked matrix: \n";
 		ccsMatrix->print();

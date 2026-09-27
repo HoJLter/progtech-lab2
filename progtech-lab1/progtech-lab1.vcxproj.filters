@@ -20,7 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="matrix.txt">
+    <Text Include="matrix_c.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="matrix_inc.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
   </ItemGroup>
